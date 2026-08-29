@@ -6,8 +6,8 @@
     systems.url = "github:nix-systems/x86_64-linux";
     process-compose-flake.url = "github:Platonic-Systems/process-compose-flake";
     services-flake.url = "github:juspay/services-flake";
-    northwind.url = "github:pthom/northwind_psql";
-    northwind.flake = false;
+    postgres_devenv.url = "github:oTheAnalyst/postgres_devenv";
+    postgres_devenv.flake = false;
   };
   outputs = inputs:
     inputs.flake-parts.lib.mkFlake {inherit inputs;} {
@@ -25,8 +25,8 @@
         # `process-compose.foo` will add a flake package output called "foo".
         # Therefore, this will add a default package that you can build using
         # `nix build` and run using `nix run`.
-        process-compose."simple-example" = {config, ...}: let
-          dbName = "sample";
+        process-compose."bread-oven" = {config, ...}: let
+          dbName = "bread";
         in {
           imports = [
             inputs.services-flake.processComposeModules.default
@@ -37,7 +37,7 @@
             initialDatabases = [
               {
                 name = dbName;
-                schemas = ["${inputs.northwind}/northwind.sql"];
+                schemas = ["/home/pretender/Public/postgres-devenv/sql/ddl.sql"];
               }
             ];
           };
@@ -60,14 +60,14 @@
             depends_on."pg1".condition = "process_healthy";
           };
         };
-        packages.default = self'.packages.simple-example;
+        packages.default = self'.packages.bread-oven;
         devShells.default = let
-          fmart =
-            pkgs.writeShellScriptBin "fmart"
-            ''pgcli -h localhost -d fmart'';
+          bread =
+            pkgs.writeShellScriptBin "bread"
+            ''pgcli -h localhost -d bread'';
           sendb =
             pkgs.writeShellScriptBin "sendb"
-            ''psql -h localhost -d fmart'';
+            ''psql -h localhost -d bread'';
           redev =
             pkgs.writeShellScriptBin "redev"
             ''rm -rf .devenv && devenv up'';
@@ -110,14 +110,14 @@
               # Add the packages of the enabled services in the devShell
               #
               # For example: `psql` to interact with `postgres` server or `redis-cli` with `redis-server`
-              config.process-compose."simple-example".services.outputs.devShell
+              config.process-compose."bread-oven".services.outputs.devShell
             ];
             packages = with pkgs; [
               # Add the process-compose app in the devShell
               sendb
               etl
               redev
-              fmart
+              bread
               ingest
               cowsay
               postgresql
@@ -127,8 +127,8 @@
               duckdb
               devenv
               #
-              # In the devShell, run `simple-example` to run the app
-              self'.packages.simple-example
+              # In the devShell, run `bread-oven` to run the app
+              self'.packages.bread-oven
             ];
             shellHook = ''
               echo "Looks like you comleted the flake services new build" |

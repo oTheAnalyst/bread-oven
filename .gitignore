@@ -1,0 +1,56 @@
+*_cache/
+/cache/
+data/*
+ingest/*
+.devenv*
+# Devenv
+devenv.local.nix
+devenv.local.yaml
+# direnv
+.direnv
+docs/
+*.duckdb*
+#_duckdbignore files
+# Example code in package build process
+## excel files
+*-Ex.R
+# History files
+*.html
+.httr-oauth
+*.knit.md
+# knitr and R markdown default cache directories
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+# Output files from R CMD build
+# Output files from R CMD check
+*.pdf
+# pkgdown site
+po/*~
+# pre-commit
+.pre-commit-config.yaml
+# produced vignettes
+.Rapp.history
+/*.Rcheck/
+.RData
+.RDataTmp
+.Renviron
+# R Environment Variables
+result
+.Rhistory
+.Rproj.user/
+rsconnect/
+# RStudio Connect folder
+# RStudio files
+.Ruserdata
+# Session Data files
+#_targets.R#
+/*.tar.gz
+# Temporary files created by R markdown
+*.tex
+*.tmp/
+# translation temp files
+# User-specific files
+*.utf8.md
+vignettes/*.html
+vignettes/*.pdf
+*.wal
+*.xlsx
