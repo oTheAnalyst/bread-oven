@@ -26,7 +26,9 @@
         # Therefore, this will add a default package that you can build using
         # `nix build` and run using `nix run`.
         process-compose."bread-oven" = {config, ...}: let
-          dbName = "bread";
+
+          dbName = "bread-oven";
+
         in {
           imports = [
             inputs.services-flake.processComposeModules.default
