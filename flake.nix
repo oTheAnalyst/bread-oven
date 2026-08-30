@@ -95,7 +95,7 @@
                sendb < sql/mart/view_revenue.sql &&
                sendb < sql/mart/view_transaction_type.sql &&
                               echo "ETL completed!" | cowsay'';
-          pythonpkgs = (pkgs.python3.withPackages (ps:
+          myPythonPackages = ps:
             with ps; [
               numpy
               dash
@@ -103,7 +103,17 @@
               streamlit
               requests
               keyring
-            ])).override {ignoreCollisions = true;};
+            ];
+          pythonEnv = pkgs.python3.withPackages myPythonPackages;
+          myRPackages = with pkgs.rPackages; [
+            reticulate
+            DBI
+            RPostgreSQL
+            dplyr
+            treemap
+            ggplot2
+            hrbrthemes
+          ];
         in
           pkgs.mkShell {
             inputsFrom = [
@@ -122,16 +132,32 @@
               cowsay
               postgresql
               pgcli
-              pythonpkgs
               sqlfluff
               duckdb
               devenv
+              pkgs.texliveSmall
+              ((quarto.override {
+                  extraPythonPackages = myPythonPackages;
+                  extraRPackages = myRPackages;
+                }).overrideAttrs (oldAttrs: {
+                  # Remove this overrideAttrs patch when fixed.
+                  # See https://github.com/NixOS/nixpkgs/issues/519484#issuecomment-4667477454
+                  postPatch =
+                    (oldAttrs.postPatch or "")
+                    + ''
+                      substituteInPlace bin/quarto.js \
+                        --replace-fail "syntax-highlighting" "highlight-style"
+                    '';
+                }))
+              (rWrapper.override {packages = myRPackages;})
+              pythonEnv
               #
               # In the devShell, run `bread-oven` to run the app
               self'.packages.bread-oven
             ];
             shellHook = ''
               echo "Looks like you comleted the flake services new build" |
+              echo "Quickstart: run 'quarto render document.qmd'" |
                 cowsay
             '';
             nativeBuildInputs = [pkgs.just];
