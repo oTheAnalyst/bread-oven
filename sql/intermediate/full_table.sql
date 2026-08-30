@@ -1,5 +1,6 @@
-DROP SEQUENCE "serial";
+DROP SEQUENCE  IF EXISTS "serial";
 CREATE SEQUENCE IF NOT EXISTS "serial";
+DROP TABLE IF EXISTS inter.full_table; 
 CREATE TABLE inter.full_table AS 
 WITH cte AS (
         SELECT "Amount", "Date","Category", "Original Description", 'checking' as account FROM staging.checking 

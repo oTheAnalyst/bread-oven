@@ -16,5 +16,4 @@ JOIN mart.category cat_type
 ON cat_type.category_description = full_table.category
 JOIN mart.account act 
 ON act.account_type = full_table.account
-WHERE full_table.datae < "2026-08-14"
 ;

@@ -77,6 +77,15 @@
               cd "$(git rev-parse --show-toplevel)" && 
                duckdb < sql/ingestion.sql &&
                               echo "ingestion completed!" | cowsay'';
+          new_data =
+            pkgs.writeShellScriptBin "new_data"
+            # bash
+            ''
+              cd "$(git rev-parse --show-toplevel)" && 
+               duckdb < sql/insert.sql &&
+               sendb < sql/intermediate/full_table.sql &&
+               sendb < sql/mart/insert_fact.sql &&
+                              echo "ETL completed!" | cowsay'';
           etl =
             pkgs.writeShellScriptBin "etl"
             # bash
@@ -126,6 +135,7 @@
               # Add the process-compose app in the devShell
               sendb
               etl
+              new_data
               redev
               bread
               ingest

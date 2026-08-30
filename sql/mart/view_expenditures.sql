@@ -1,6 +1,7 @@
+DROP VIEW IF exists mart.expenditures;
 CREATE VIEW mart.expenditures AS
 with cte as (
-SELECT 
+SELECT DISTINCT 
         extract(YEAR from short_date) as year,
        date.month_number, 
        date.short_date, 
