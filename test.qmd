@@ -1,0 +1,21 @@
+---
+title: Quarto Document
+---
+
+## Section Title
+
+A quarto document with bash, R and python code.
+
+```{sh}
+which R
+which python
+```
+
+```{r}
+plot(mpg ~ cyl, mtcars)
+```
+
+```{python}
+import os
+os.listdir()
+```

@@ -1,0 +1,138 @@
+---
+title: Personal Finance Analysis
+---
+
+## Introduction
+
+This is a quarto document with bash, R, SQL and python code.
+```{r}
+#| echo: false
+#| output: false
+
+
+
+library(ggplot2)
+library(dplyr)
+library(hrbrthemes)
+library(DBI)
+library(RPostgreSQL)
+library(treemap)
+
+drv <- DBI::dbDriver("PostgreSQL")
+pw <- ""
+con <- DBI::dbConnect(drv, dbname = "bread",
+                          host = "localhost", port = 5432,
+                          user = "pretender", password = pw)
+
+res <- dbSendQuery(con, "
+        SELECT *, amount * -1 as pamount 
+        FROM mart.transaction_monthly
+        WHERE month_number = 7;
+        ")
+var <- dbFetch(res)
+res1 <- dbSendQuery(con, "
+        select * from mart.revenue;
+        ")
+var1 <- dbFetch(res1)
+
+res2 <- dbSendQuery(con, "
+        select *, amount_per_month * -1 as amount from mart.expenditures;
+        ")
+var2 <- dbFetch(res2)
+
+
+
+res3 <- dbSendQuery(con, "
+        select *  from mart.net_income;
+        ")
+var3 <- dbFetch(res3)
+res4 <- dbSendQuery(con, "
+        SELECT *, amount * -1 as pamount 
+        FROM mart.transaction_monthly
+        WHERE month_number = 8;
+        ")
+var4 <- dbFetch(res4)
+dbDisconnect(con)
+```
+
+
+```{r}
+#| echo: false
+
+var$"names" <- paste(var$category_description, var$amount)
+
+# treemap
+treemap(var,
+            index = "names",
+            title = "July Category Cost",
+            vSize = "pamount",
+            type = "index"
+            )
+
+```
+
+```{r}
+#| echo: false
+
+var4$"names" <- paste(var4$category_description, var4$amount)
+ 
+
+# treemap
+treemap(var4,
+            index = "names",
+            title = "August Category Cost(so far)",
+            vSize = "pamount",
+            type = "index"
+            )
+
+```
+Each box represents the total spend of each category relative to the other category. The main purpose of this chart is to show how each category category relates to one another individually or as group.
+
+```{r}
+#| echo: false
+
+data <- var1
+
+# Plot
+data %>%
+  tail(10) %>%
+  ggplot(aes(x = month_number, y = amount_per_month)) +
+    geom_area( fill="#69b3a2", alpha=0.4) +
+    geom_line(color = "grey") +
+    geom_point(size=3, color="#69b3a2") +
+    theme_ipsum() +
+    ggtitle("Gross Income")
+```
+
+
+```{r}
+#| echo: false
+
+data <- var2
+
+# Plot
+data %>%
+  tail(10) %>%
+  ggplot(aes(x = month_number, y = amount)) +
+    geom_area( fill="#69b3a2", alpha=0.4) +
+    geom_line(color = "grey") +
+    geom_point(size=3, color="#69b3a2") +
+    theme_ipsum() +
+    ggtitle("Raw Expenditures")
+```
+
+```{r}
+#| echo: false
+
+data <- var3
+
+# Plot
+data %>%
+  tail(10) %>%
+  ggplot(aes(x = month_number, y = amount_per_month)) +
+    geom_area( fill="#69b3a2", alpha=0.4) +
+    geom_line(color = "grey") +
+    geom_point(size=3, color="#69b3a2") +
+    theme_ipsum() +
+    ggtitle("Net Income")
+```
