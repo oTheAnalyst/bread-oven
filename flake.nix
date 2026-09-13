@@ -60,9 +60,19 @@
             depends_on."pg1".condition = "process_healthy";
           };
         };
-        packages.scheduleE = pkgs.fetchurl {
-          url = "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/data-dump/schedules/fec_fitem_sched_e.dump";
-          hash = "sha256-TNGfi2MvR2+z+mfoEhtXmfg4rKXJYm2CjLWTzr4ZzIM=";
+        packages = {
+          sched_a = pkgs.fetchurl {
+            url = "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/data-dump/schedules/fec_fitem_sched_a.dump";
+            hash = "";
+          };
+          #  sched_b = pkgs.fetchurl {
+          #    url = "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/data-dump/schedules/fec_fitem_sched_b.dump";
+          #    hash = "sha256-TNGfi2MvR2+z+mfoEhtXmfg4rKXJYm2CjLWTzr4ZzIM=";
+          #  };
+          #  sched_e = pkgs.fetchurl {
+          #    url = "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/data-dump/schedules/fec_fitem_sched_e.dump";
+          #    hash = "sha256-TNGfi2MvR2+z+mfoEhtXmfg4rKXJYm2CjLWTzr4ZzIM=";
+          #  };
         };
         packages.default = self'.packages.bread-oven;
         devShells.default = let
@@ -85,9 +95,9 @@
             ggplot2
             hrbrthemes
           ];
-          bread =
-            pkgs.writeShellScriptBin "bread"
-            ''pgcli -h localhost -d bread'';
+          load =
+            pkgs.writeShellScriptBin "load"
+            ''pg_restore -h localhost -d bread -v --no-acl --no-owner ${self'.packages.sched_a}'';
           sendb =
             pkgs.writeShellScriptBin "sendb"
             ''psql -h localhost -d bread'';
@@ -101,7 +111,9 @@
             ];
             packages = with pkgs; [
               # Add the process-compose app in the devShell
+              sendb
               cowsay
+              load
               postgresql
               pgcli
               sqlfluff
