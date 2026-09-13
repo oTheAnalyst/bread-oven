@@ -37,7 +37,7 @@
             initialDatabases = [
               {
                 name = dbName;
-                schemas = ["/home/pretender/Public/postgres-devenv/sql/ddl.sql"];
+                schemas = [./fec_schema.sql];
               }
             ];
           };
@@ -60,41 +60,12 @@
             depends_on."pg1".condition = "process_healthy";
           };
         };
+        packages.scheduleE = pkgs.fetchurl {
+          url = "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/data-dump/schedules/fec_fitem_sched_e.dump";
+          hash = "sha256-TNGfi2MvR2+z+mfoEhtXmfg4rKXJYm2CjLWTzr4ZzIM=";
+        };
         packages.default = self'.packages.bread-oven;
         devShells.default = let
-          bread =
-            pkgs.writeShellScriptBin "bread"
-            ''pgcli -h localhost -d bread'';
-          sendb =
-            pkgs.writeShellScriptBin "sendb"
-            ''psql -h localhost -d bread'';
-          redev =
-            pkgs.writeShellScriptBin "redev"
-            ''rm -rf .devenv && devenv up'';
-          ingest =
-            pkgs.writeShellScriptBin "ingest"
-            ''
-              cd "$(git rev-parse --show-toplevel)" && 
-               duckdb < sql/ingestion.sql &&
-                              echo "ingestion completed!" | cowsay'';
-          etl =
-            pkgs.writeShellScriptBin "etl"
-            # bash
-            ''
-              cd "$(git rev-parse --show-toplevel)" && 
-               sendb < sql/intermediate/full_table.sql &&
-               sendb < sql/intermediate/clean_category.sql &&
-               sendb < sql/intermediate/clean_transaction.sql &&
-               sendb < sql/mart/insert_account.sql &&
-               sendb < sql/mart/insert_calender.sql &&
-               sendb < sql/mart/insert_transaction.sql &&
-               sendb < sql/mart/insert_category.sql &&
-               sendb < sql/mart/insert_fact.sql &&
-               sendb < sql/mart/view_expenditures.sql &&
-               sendb < sql/mart/view_net_income.sql &&
-               sendb < sql/mart/view_revenue.sql &&
-               sendb < sql/mart/view_transaction_type.sql &&
-                              echo "ETL completed!" | cowsay'';
           myPythonPackages = ps:
             with ps; [
               numpy
@@ -114,6 +85,12 @@
             ggplot2
             hrbrthemes
           ];
+          bread =
+            pkgs.writeShellScriptBin "bread"
+            ''pgcli -h localhost -d bread'';
+          sendb =
+            pkgs.writeShellScriptBin "sendb"
+            ''psql -h localhost -d bread'';
         in
           pkgs.mkShell {
             inputsFrom = [
@@ -124,11 +101,6 @@
             ];
             packages = with pkgs; [
               # Add the process-compose app in the devShell
-              sendb
-              etl
-              redev
-              bread
-              ingest
               cowsay
               postgresql
               pgcli
