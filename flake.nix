@@ -61,10 +61,10 @@
           };
         };
         packages = {
-          sched_a = pkgs.fetchurl {
-            url = "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/data-dump/schedules/fec_fitem_sched_a.dump";
-            hash = "";
-          };
+          #   sched_a = pkgs.fetchurl {
+          #     url = "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/data-dump/schedules/fec_fitem_sched_a.dump";
+          #     hash = "";
+          #   };
           #  sched_b = pkgs.fetchurl {
           #    url = "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/data-dump/schedules/fec_fitem_sched_b.dump";
           #    hash = "sha256-TNGfi2MvR2+z+mfoEhtXmfg4rKXJYm2CjLWTzr4ZzIM=";
@@ -73,7 +73,15 @@
           #    url = "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/data-dump/schedules/fec_fitem_sched_e.dump";
           #    hash = "sha256-TNGfi2MvR2+z+mfoEhtXmfg4rKXJYm2CjLWTzr4ZzIM=";
           #  };
+          s3-fetch = pkgs.fetchzip {
+            url = "https://www.fec.gov/files/bulk-downloads/2026/webl26.zip";
+          };
         };
+
+        test = pkgs.runCommand "ingest" {} ''
+          duckdb fec.dbb "create table house-senate-campaigns as select * from read_csv("${packages.s3-fetch}") "
+        '';
+
         packages.default = self'.packages.bread-oven;
         devShells.default = let
           myPythonPackages = ps:
@@ -95,9 +103,9 @@
             ggplot2
             hrbrthemes
           ];
-          load =
-            pkgs.writeShellScriptBin "load"
-            ''pg_restore -h localhost -d bread -v --no-acl --no-owner ${self'.packages.sched_a}'';
+          #  load =
+          #    pkgs.writeShellScriptBin "load"
+          #    ''pg_restore -h localhost -d bread -v --no-acl --no-owner ${self'.packages.sched_a}'';
           sendb =
             pkgs.writeShellScriptBin "sendb"
             ''psql -h localhost -d bread'';
@@ -113,7 +121,6 @@
               # Add the process-compose app in the devShell
               sendb
               cowsay
-              load
               postgresql
               pgcli
               sqlfluff
