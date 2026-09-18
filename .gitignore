@@ -1,3 +1,5 @@
+result/
+database.db
 *_cache/
 /cache/
 data/*

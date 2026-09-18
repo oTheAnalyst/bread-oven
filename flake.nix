@@ -61,18 +61,37 @@
           };
         };
         packages = {
-          webl26 = pkgs.fetchzip {
-            url = "https://www.fec.gov/files/bulk-downloads/2026/webl26.zip";
-            sha256 = "oZanUSGse2LCvtnpJDHLODRaJkmm6RIYsRKzBvnuIZc=";
+          oth26 = pkgs.fetchzip {
+            url = "https://www.fec.gov/files/bulk-downloads/2026/oth26.zip";
+            sha256 = "dRoFT0QpGJ4re1+IkKqOZvQuRcy1hMghjDlChItm5Vs=";
+          };
+          indiv26 = pkgs.fetchzip {
+            stripRoot = false;
+            url = "https://www.fec.gov/files/bulk-downloads/2026/indiv26.zip";
+            sha256 = "hqYH4CT+tXAn15AcaTEEUR16JO6Oh2IkabyS4M57Y+0=";
+          };
+          pass226 = pkgs.fetchzip {
+            url = "https://www.fec.gov/files/bulk-downloads/2026/pas226.zip";
+            sha256 = "N5Is8VnGPjsMQS4BwDU+1A1U3uUAkuAmJd43rqS5uNA=";
           };
 
           ingestme =
             pkgs.runCommand "ingestme" {
-              nativeBuildInputs = with pkgs; [unzip duckdb];
+              nativeBuildInputs = with pkgs; [duckdb];
+              #bash
             } ''
-              unzip ${self'.packages.webl26} -d "$TEMPDIR"
-              cd "$TEMPDIR"/webl26
-              duckdb fec.dbb "create table house-senate-campaigns as select * from read_csv('webl26.txt')"
+              mkdir $out
+              duckdb $out/database.db -c "
+              create schema stg;
+              create table stg.one_commitee_to_another as select *
+              from read_csv('${self'.packages.oth26}/itoth.txt');
+              create table stg.individual_contributions as select *
+              from read_csv('${self'.packages.indiv26}/itcont.txt');
+              create table stg.individual_contributions_mega_with_invalid_date as select *
+              from read_csv('${self'.packages.indiv26}/by_date/*.txt');
+              create table stg.committees_to_canidates_independent_expenditures as select *
+              from read_csv('${self'.packages.pass226}/itpas2.txt');
+              "
             '';
         };
 
@@ -109,11 +128,12 @@
               # Add the packages of the enabled services in the devShell
               #
               # For example: `psql` to interact with `postgres` server or `redis-cli` with `redis-server`
-              config.process-compose."bread-oven".services.outputs.devShell
+              #  config.process-compose."bread-oven".services.outputs.devShell
             ];
             packages = with pkgs; [
               # Add the process-compose app in the devShell
               sendb
+              nix-output-monitor
               cowsay
               postgresql
               pgcli
@@ -140,11 +160,23 @@
               # In the devShell, run `bread-oven` to run the app
               self'.packages.bread-oven
             ];
-            shellHook = ''
-              echo "Looks like you comleted the flake services new build" |
-              echo "Quickstart: run 'quarto render document.qmd'" |
-                cowsay
-            '';
+            shellHook =
+              #bash
+              ''
+                FILE=./database.db
+                ls -l $FILE
+                echo $(pwd)
+                if [ -f "$FILE" ]; then
+                        echo "your database exists" |
+                                cowsay
+                else
+                        echo "database building ... please wait 5 minutes" |
+                                cowsay
+                            nom build .#ingestme
+                            cp result/database.db .
+                            chmod u+w database.db
+                fi
+              '';
             nativeBuildInputs = [pkgs.just];
           };
       };
