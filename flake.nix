@@ -61,6 +61,14 @@
           };
         };
         packages = {
+          cm26 = pkgs.fetchzip {
+            url = "https://www.fec.gov/files/bulk-downloads/2026/cm26.zip";
+            sha256 = "Pnx70E+lLXzohwwHARl8p4iT1/BAcH+ySUlD674E7t0=";
+          };
+          weball26 = pkgs.fetchzip {
+            url = "https://www.fec.gov/files/bulk-downloads/2026/weball26.zip";
+            sha256 = "LOjDJ60p0xznQoK2JkttHtgUs1UXXEXqDJvJ0JGP9Y8=";
+          };
           oth26 = pkgs.fetchzip {
             url = "https://www.fec.gov/files/bulk-downloads/2026/oth26.zip";
             sha256 = "dRoFT0QpGJ4re1+IkKqOZvQuRcy1hMghjDlChItm5Vs=";
@@ -84,6 +92,10 @@
               mkdir $out
               duckdb $out/database.db -c "
               create schema stg;
+              create table stg.committee_master as select *
+              from read_csv('${self'.packages.cm26}/cm.txt',all_varchar=true,header=false);
+              create table stg.candidate_summary as select *
+              from read_csv('${self'.packages.weball26}/weball26.txt',all_varchar=true,header=false);
               create table stg.one_commitee_to_another as select *
               from read_csv('${self'.packages.oth26}/itoth.txt',all_varchar=true);
               create table stg.individual_contributions as select *
