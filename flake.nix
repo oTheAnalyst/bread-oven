@@ -68,7 +68,8 @@
           indiv26 = pkgs.fetchzip {
             stripRoot = false;
             url = "https://www.fec.gov/files/bulk-downloads/2026/indiv26.zip";
-            sha256 = "hqYH4CT+tXAn15AcaTEEUR16JO6Oh2IkabyS4M57Y+0=";
+            sha256 = "0YR8tgSp3b36r9ys/cNRo1Z8V8I+ybUIibHIMaS8pO0=";
+            postFetch = "rm -f $out/by_date/itcont_2026_invalid_dates.txt";
           };
           pass226 = pkgs.fetchzip {
             url = "https://www.fec.gov/files/bulk-downloads/2026/pas226.zip";
@@ -84,13 +85,13 @@
               duckdb $out/database.db -c "
               create schema stg;
               create table stg.one_commitee_to_another as select *
-              from read_csv('${self'.packages.oth26}/itoth.txt');
+              from read_csv('${self'.packages.oth26}/itoth.txt',all_varchar=true);
               create table stg.individual_contributions as select *
               from read_csv('${self'.packages.indiv26}/itcont.txt');
               create table stg.individual_contributions_mega_with_invalid_date as select *
-              from read_csv('${self'.packages.indiv26}/by_date/*.txt');
+              from read_csv('${self'.packages.indiv26}/by_date/*.txt',all_varchar=true);
               create table stg.committees_to_canidates_independent_expenditures as select *
-              from read_csv('${self'.packages.pass226}/itpas2.txt');
+              from read_csv('${self'.packages.pass226}/itpas2.txt',all_varchar=true);
               "
             '';
         };
