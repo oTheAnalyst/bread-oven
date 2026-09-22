@@ -60,28 +60,40 @@
             depends_on."pg1".condition = "process_healthy";
           };
         };
-        packages = {
+        packages = let
+          sourceData = builtins.fromJSON (builtins.readFile ./data.json);
+        in {
           cm26 = pkgs.fetchzip {
-            url = "https://www.fec.gov/files/bulk-downloads/2026/cm26.zip";
-            sha256 = "Pnx70E+lLXzohwwHARl8p4iT1/BAcH+ySUlD674E7t0=";
+            url = sourceData.cm26.url;
+            # url = "https://www.fec.gov/files/bulk-downloads/2026/cm26.zip";
+            sha256 = sourceData.cm26.hash;
+            #sha256 = "buw3UTAx1+CrtL0ysdFWjfb0O6+J3oj3rc1/x7Hgi1o=";
           };
           weball26 = pkgs.fetchzip {
-            url = "https://www.fec.gov/files/bulk-downloads/2026/weball26.zip";
-            sha256 = "LOjDJ60p0xznQoK2JkttHtgUs1UXXEXqDJvJ0JGP9Y8=";
+            url = sourceData.weball26.url;
+            #url = "https://www.fec.gov/files/bulk-downloads/2026/weball26.zip";
+            sha256 = sourceData.weball26.hash;
+            #sha256 = "47YnIPM8CSPPBFL0Hd6w48NKPrpuWQAdQidCYot0Rn0=";
           };
           oth26 = pkgs.fetchzip {
-            url = "https://www.fec.gov/files/bulk-downloads/2026/oth26.zip";
-            sha256 = "dRoFT0QpGJ4re1+IkKqOZvQuRcy1hMghjDlChItm5Vs=";
+            url = sourceData.oth26.url;
+            #url = "https://www.fec.gov/files/bulk-downloads/2026/oth26.zip";
+            hash = sourceData.oth26.hash;
+            #sha256 = "HEJEGxx5mHKPhTIGKOT1kwr+DdjqsrD6N1fUloruuCw=";
           };
           indiv26 = pkgs.fetchzip {
             stripRoot = false;
-            url = "https://www.fec.gov/files/bulk-downloads/2026/indiv26.zip";
-            sha256 = "0YR8tgSp3b36r9ys/cNRo1Z8V8I+ybUIibHIMaS8pO0=";
+            url = sourceData.indiv26.url;
+            #url = "https://www.fec.gov/files/bulk-downloads/2026/indiv26.zip";
+            sha256 = sourceData.indiv26.hash;
+            #sha256 = "80FZBEe05soSTqGpvTW9At7UGvIPGxZqVI3cNNTBvYQ=";
             postFetch = "rm -f $out/by_date/itcont_2026_invalid_dates.txt";
           };
           pass226 = pkgs.fetchzip {
-            url = "https://www.fec.gov/files/bulk-downloads/2026/pas226.zip";
-            sha256 = "N5Is8VnGPjsMQS4BwDU+1A1U3uUAkuAmJd43rqS5uNA=";
+            url = sourceData.pass226.url;
+            #url = "https://www.fec.gov/files/bulk-downloads/2026/pas226.zip";
+            sha256 = sourceData.pass226.hash;
+            #sha256 = "buw3UTAx1+CrtL0ysdFWjfb0O6+J3oj3rc1/x7Hgi1o=";
           };
 
           ingestme =
@@ -108,7 +120,7 @@
             '';
         };
 
-        packages.default = self'.packages.bread-oven;
+        #packages.default = self'.packages.bread-oven;
         devShells.default = let
           myPythonPackages = ps:
             with ps; [
