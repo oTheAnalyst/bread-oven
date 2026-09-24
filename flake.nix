@@ -157,6 +157,7 @@
             ];
             packages = with pkgs; [
               # Add the process-compose app in the devShell
+              jq
               sendb
               nix-output-monitor
               cowsay

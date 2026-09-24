@@ -36,7 +36,7 @@ select
         column20::bigint as fec_record_number
 from stg.individual_contributions_mega_with_invalid_date;
 
-create or replace table inter.commitees_to_canidates_independent_expenditures_s1 as
+create or replace table inter.commitees_to_canidates_s1 as
 SELECT 
         column00 as committee_identification,
         column01 as amendment_indicator,
@@ -54,12 +54,12 @@ SELECT
         strptime(column13, '%m%d%Y')::date as transaction_date,
         column14::decimal as transaction_amount,
         column15 as other_id_number,
-        column16 as cand_id,
-        column17 as tran_id,
+        column16 as candidate_id,
+        column17 as transaction_id,
         column18::int as file_number,
-        column19 as memo_cd,
+        column19 as memo_code,
         column20 as memo_text,
-        column21::bigint as sub_id
+        column21::bigint as fec_record_number
 FROM stg.committees_to_canidates_independent_expenditures;
 
 
@@ -81,11 +81,11 @@ SELECT
         strptime(column13, '%m%d%Y')::date as transaction_date,
         column14::decimal as transaction_amount,
         column15 as other_id_number,
-        column16 as tran_id,
+        column16 as transaction_id,
         column17::int as file_number,
         column18 as memo_cd,
         column19 as memo_text,
-        column20::bigint as sub_id
+        column20::bigint as fec_record_number
 FROM stg.one_commitee_to_another;
 
 create or replace table inter.candidate_summary_s1 as
@@ -95,19 +95,19 @@ select
         column02 as incumbent_challenger_status,
         column03 as party_code,
         column04 as party_affiliation,
-        column05::int as total_receipts,
-        column06::int as transfers_from_authorized_committees,
-        column07::int as total_disbursements,
-        column08::int as transfers_to_authorized_committees,
-        column09::int as beginning_cash,
-        column10::int as ending_cash,
-        column11::int as contributions_from_candidate,
-        column12::int as loans_from_candidate,
-        column13::int as other_loans,
-        column14::int as candidate_loan_repayment,
-        column15::int as other_loan_repayments,
-        column16::int as debts_owed_by,
-        column17::int as total_individual_contributions,
+        column05::decimal as total_receipts,
+        column06::decimal as transfers_from_authorized_committees,
+        column07::decimal as total_disbursements,
+        column08::decimal as transfers_to_authorized_committees,
+        column09::decimal as beginning_cash,
+        column10::decimal as ending_cash,
+        column11::decimal as contributions_from_candidate,
+        column12::decimal as loans_from_candidate,
+        column13::decimal as other_loans,
+        column14::decimal as candidate_loan_repayment,
+        column15::decimal as other_loan_repayments,
+        column16::decimal as debts_owed_by,
+        column17::decimal as total_individual_contributions,
         column18 as candidate_state,
         column19 as candidate_district,
         column20 as special_election_status,
@@ -118,8 +118,8 @@ select
         column25 as contribution_from_other_politcal_committees,
         column26 as contribution_from_party_committees,
         column27 as coverage_end_date,
-        column28 as refunds_to_individuals,
-        column29 as refunds_to_committees
+        column28::decimal as refunds_to_individuals,
+        column29::decimal as refunds_to_committees
 FROM stg.candidate_summary;
 
 create or replace table inter.committee_master_s1 as
