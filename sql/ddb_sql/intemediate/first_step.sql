@@ -7,12 +7,13 @@ data cleaning and organizing:
 - use a data dictionary to fill the columns
 - data is date not timestamp
 - https://www.fec.gov/campaign-finance-data/contributions-individuals-file-description/
+- monitary transaction are decimals
 */
 create schema IF NOT EXISTS inter;
 SET memory_limit = '4GB';
 create or replace table inter.individual_contributions_s1 as
 select 
-        column00 as cmt_id,
+        column00 as committee_identification,
         column01 as amendment_indicator,
         column02 as report_type,
         column03 as primary_general_indicator,
@@ -26,7 +27,7 @@ select
         column11 as employer,
         column12 as occupation,
         strptime(column13, '%m%d%Y')::date as transaction_date,
-        column14::bigint as transaction_amount,
+        column14::decimal as transaction_amount,
         column15 as other_id_number,
         column16 as transaction_id,
         column17::bigint as report_id,
@@ -37,7 +38,7 @@ from stg.individual_contributions_mega_with_invalid_date;
 
 create or replace table inter.commitees_to_canidates_independent_expenditures_s1 as
 SELECT 
-        column00 as cmt_id,
+        column00 as committee_identification,
         column01 as amendment_indicator,
         column02 as report_type,
         column03 as primary_general_indicator,
@@ -51,8 +52,8 @@ SELECT
         column11 as employer,
         column12 as occupation,
         strptime(column13, '%m%d%Y')::date as transaction_date,
-        column14::int as transaction_amount,
-        column15 as other_id,
+        column14::decimal as transaction_amount,
+        column15 as other_id_number,
         column16 as cand_id,
         column17 as tran_id,
         column18::int as file_number,
@@ -64,7 +65,7 @@ FROM stg.committees_to_canidates_independent_expenditures;
 
 create or replace table inter.one_commitee_to_another as
 SELECT  
-        column00 as cmt_id,
+        column00 as committee_identification,
         column01 as amendment_indicator,
         column02 as report_type,
         column03 as primary_general_indicator,
@@ -78,8 +79,8 @@ SELECT
         column11 as employer,
         column12 as occupation,
         strptime(column13, '%m%d%Y')::date as transaction_date,
-        column14::int as transaction_amount,
-        column15 as other_id,
+        column14::decimal as transaction_amount,
+        column15 as other_id_number,
         column16 as tran_id,
         column17::int as file_number,
         column18 as memo_cd,
