@@ -61,64 +61,45 @@
           };
         };
         packages = let
-          sourceData = builtins.fromJSON (builtins.readFile ./data.json);
-        in {
-          cm26 = pkgs.fetchzip {
-            url = sourceData.cm26.url;
-            # url = "https://www.fec.gov/files/bulk-downloads/2026/cm26.zip";
-            sha256 = sourceData.cm26.hash;
-            #sha256 = "buw3UTAx1+CrtL0ysdFWjfb0O6+J3oj3rc1/x7Hgi1o=";
-          };
-          weball26 = pkgs.fetchzip {
-            url = sourceData.weball26.url;
-            #url = "https://www.fec.gov/files/bulk-downloads/2026/weball26.zip";
-            sha256 = sourceData.weball26.hash;
-            #sha256 = "47YnIPM8CSPPBFL0Hd6w48NKPrpuWQAdQidCYot0Rn0=";
-          };
-          oth26 = pkgs.fetchzip {
-            url = sourceData.oth26.url;
-            #url = "https://www.fec.gov/files/bulk-downloads/2026/oth26.zip";
-            hash = sourceData.oth26.hash;
-            #sha256 = "HEJEGxx5mHKPhTIGKOT1kwr+DdjqsrD6N1fUloruuCw=";
-          };
-          indiv26 = pkgs.fetchzip {
-            stripRoot = false;
-            url = sourceData.indiv26.url;
-            #url = "https://www.fec.gov/files/bulk-downloads/2026/indiv26.zip";
-            sha256 = sourceData.indiv26.hash;
-            #sha256 = "80FZBEe05soSTqGpvTW9At7UGvIPGxZqVI3cNNTBvYQ=";
-            postFetch = "rm -f $out/by_date/itcont_2026_invalid_dates.txt";
-          };
-          pass226 = pkgs.fetchzip {
-            url = sourceData.pass226.url;
-            #url = "https://www.fec.gov/files/bulk-downloads/2026/pas226.zip";
-            sha256 = sourceData.pass226.hash;
-            #sha256 = "buw3UTAx1+CrtL0ysdFWjfb0O6+J3oj3rc1/x7Hgi1o=";
-          };
+          helper = name: value:
+            pkgs.fetchzip
+            {
+              url = value.url;
+              sha256 = value.hash;
+            };
 
-          ingestme =
-            pkgs.runCommand "ingestme" {
-              nativeBuildInputs = with pkgs; [duckdb];
-              #bash
-            } ''
-              mkdir $out
-              duckdb $out/database.db -c "
-              create schema stg;
-              create table stg.committee_master as select *
-              from read_csv('${self'.packages.cm26}/cm.txt',all_varchar=true,header=false);
-              create table stg.candidate_summary as select *
-              from read_csv('${self'.packages.weball26}/weball26.txt',all_varchar=true,header=false);
-              create table stg.one_commitee_to_another as select *
-              from read_csv('${self'.packages.oth26}/itoth.txt',all_varchar=true);
-              create table stg.individual_contributions as select *
-              from read_csv('${self'.packages.indiv26}/itcont.txt');
-              create table stg.individual_contributions_mega_with_invalid_date as select *
-              from read_csv('${self'.packages.indiv26}/by_date/*.txt',all_varchar=true);
-              create table stg.committees_to_canidates_independent_expenditures as select *
-              from read_csv('${self'.packages.pass226}/itpas2.txt',all_varchar=true);
-              "
-            '';
-        };
+          /*
+          indiv26
+          postFetch = "rm -f $out/by_date/itcont_2026_invalid_dates.txt";
+          */
+          sourceData = builtins.fromJSON (builtins.readFile ./data.json);
+          rawdata = builtins.mapAttrs helper sourceData;
+        in
+          rawdata
+          // {
+            ingestme =
+              pkgs.runCommand "ingestme" {
+                nativeBuildInputs = with pkgs; [duckdb];
+                #bash
+              } ''
+                mkdir $out
+                duckdb $out/database.db -c "
+                create schema stg;
+                create table stg.committee_master as select *
+                from read_csv('${self'.packages.cm26}/cm.txt',all_varchar=true,header=false);
+                create table stg.candidate_summary as select *
+                from read_csv('${self'.packages.weball26}/weball26.txt',all_varchar=true,header=false);
+                create table stg.one_commitee_to_another as select *
+                from read_csv('${self'.packages.oth26}/itoth.txt',all_varchar=true,header=false);
+                create table stg.individual_contributions as select *
+                from read_csv('${self'.packages.indiv26}/itcont.txt',all_varchar=true,header=false);
+                create table stg.individual_contributions_mega_with_invalid_date as select *
+                from read_csv('${self'.packages.indiv26}/by_date/*.txt',all_varchar=true,header=false);
+                create table stg.committees_to_canidates_independent_expenditures as select *
+                from read_csv('${self'.packages.pass226}/itpas2.txt',all_varchar=true,header=false);
+                "
+              '';
+          };
 
         #packages.default = self'.packages.bread-oven;
         devShells.default = let

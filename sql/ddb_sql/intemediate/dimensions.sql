@@ -101,6 +101,8 @@ SELECT
         zip_code,
         employer,
         occupation,
+        memo_code,
+        memo_text,
         other_id_number,
         report_id,
         fec_record_number,
@@ -112,16 +114,14 @@ ALTER TABLE if exists mart.individual
 add primary key(internal_id);
 
 CREATE UNIQUE INDEX 
-individual_inx ON mart.committee (internal_id);
+individual_inx ON mart.individual_contributors (internal_id);
 
 /*
-removed these guys, they are suppose to go into 
+removed these from , they are suppose to go into 
 the fact table
 
         transaction_type,
         transaction_id,
         transaction_date,
         transaction_amount,
-        memo_code,
-        memo_text,
 */
