@@ -35,7 +35,7 @@ OR REPLACE TABLE mart.candidate AS SELECT
         coverage_end_date,
         refunds_to_individuals,
         refunds_to_committees,
-        nextval('candidate') ::BIGINT AS internal_id
+        nextval('candidate')::BIGINT AS internal_id
 FROM
         inter.candidate_summary_s1;
 ALTER TABLE if EXISTS mart.candidate ADD PRIMARY KEY(internal_id);
@@ -77,7 +77,7 @@ OR REPLACE TABLE mart.contributors AS
 with mega_contributors as (
 SELECT
         committee_identification,
-        'individual contribution'::bigint AS contribution_type,
+        'individual contribution'::varchar AS contribution_type,
         amendment_indicator,
         report_type,
         primary_general_indicator,
@@ -99,7 +99,7 @@ FROM
 UNION ALL 
 SELECT
         committee_identification,
-        'one committee to another'::bigint AS contribution_type,
+        'one committee to another'::varchar AS contribution_type,
         amendment_indicator,
         report_type,
         primary_general_indicator,
@@ -120,7 +120,7 @@ FROM
 UNION ALL
 SELECT 
         committee_identification,
-        'commitee to candidate'::bigint AS contribution_type,
+        'commitee to candidate'::varchar AS contribution_type,
         amendment_indicator,
         report_type,
         primary_general_indicator,
@@ -145,7 +145,7 @@ FROM inter.commitees_to_canidates_s1
 
 ALTER TABLE if EXISTS mart.individual ADD PRIMARY KEY(internal_id);
 CREATE UNIQUE INDEX individual_inx
-ON mart.individual_contributors(internal_id);
+ON mart.contributors(internal_id);
 /*
 removed these from , they are suppose to go into 
 the fact table

@@ -73,16 +73,26 @@
           postFetch = "rm -f $out/by_date/itcont_2026_invalid_dates.txt";
           */
           sourceData = builtins.fromJSON (builtins.readFile ./data.json);
-          rawdata = builtins.mapAttrs helper sourceData;
+
+          rawdata = builtins.mapAttrs helper (removeAttrs sourceData ["indiv26"]);
+
+          indiv26 = pkgs.fetchzip {
+            stripRoot = false;
+            url = sourceData.indiv26.url;
+            sha256 = sourceData.indiv26.hash;
+            postFetch = "rm -f $out/by_date/itcont_2026_invalid_dates.txt";
+          };
         in
           rawdata
+          // {inherit indiv26;}
           // {
             ingestme =
               pkgs.runCommand "ingestme" {
                 nativeBuildInputs = with pkgs; [duckdb];
-                #bash
-              } ''
-                mkdir $out
+              } #bash
+              
+              ''
+                mkdir -p $out
                 duckdb $out/database.db -c "
                 create schema stg;
                 create table stg.committee_master as select *
@@ -92,9 +102,7 @@
                 create table stg.one_commitee_to_another as select *
                 from read_csv('${self'.packages.oth26}/itoth.txt',all_varchar=true,header=false);
                 create table stg.individual_contributions as select *
-                from read_csv('${self'.packages.indiv26}/itcont.txt',all_varchar=true,header=false);
-                create table stg.individual_contributions_mega_with_invalid_date as select *
-                from read_csv('${self'.packages.indiv26}/by_date/*.txt',all_varchar=true,header=false);
+                from read_csv('${indiv26}/itcont.txt',all_varchar=true,header=false);
                 create table stg.committees_to_canidates_independent_expenditures as select *
                 from read_csv('${self'.packages.pass226}/itpas2.txt',all_varchar=true,header=false);
                 "
@@ -182,6 +190,8 @@
                             nom build .#ingestme
                             cp result/database.db .
                             chmod u+w database.db
+                        duckdb database.db < ./sql/ddb_sql/intemediate/first_step.sql
+                        #duckdb database.db < ./sql/ddb_sql/intemediate/dimensions.sql
                 fi
               '';
             nativeBuildInputs = [pkgs.just];

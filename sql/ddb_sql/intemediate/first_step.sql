@@ -34,7 +34,7 @@ select
         column18 as memo_code,
         column19 as memo_text,
         column20::bigint as fec_record_number
-from stg.individual_contributions_mega_with_invalid_date;
+from stg.individual_contributions;
 
 create or replace table inter.commitees_to_canidates_s1 as
 SELECT 
