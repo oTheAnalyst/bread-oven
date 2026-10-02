@@ -191,7 +191,9 @@
                             cp result/database.db .
                             chmod u+w database.db
                         duckdb database.db < ./sql/ddb_sql/intemediate/first_step.sql
-                        #duckdb database.db < ./sql/ddb_sql/intemediate/dimensions.sql
+                        duckdb database.db < ./sql/ddb_sql/intemediate/second_step.sql
+                        duckdb database.db < ./sql/ddb_sql/mart/mart_s1.sql
+                        duckdb database.db < ./sql/ddb_sql/mart/mart_s2.sql
                 fi
               '';
             nativeBuildInputs = [pkgs.just];

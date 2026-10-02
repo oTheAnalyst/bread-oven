@@ -71,80 +71,39 @@ ON mart.committee(internal_id);
 /*
 Individual Contributions Dimension
 */DROP sequence if EXISTS individual;
-CREATE sequence individual START WITH 30increment BY 2;
+CREATE sequence individual;
 CREATE
 OR REPLACE TABLE mart.contributors AS 
 with mega_contributors as (
-SELECT
-        committee_identification,
-        'individual contribution'::varchar AS contribution_type,
-        amendment_indicator,
-        report_type,
-        primary_general_indicator,
-        image_number,
-        entity_type,
-        contributor_lender_name,
-        city,
-        state,
-        zip_code,
-        employer,
-        occupation,
-        memo_code,
-        memo_text,
-        'NA' as candidate_id,
-        fec_record_number --       nextval('individual')::bigint as internal_id
-
-FROM
-        inter.individual_contributions_s1
-UNION ALL 
-SELECT
-        committee_identification,
-        'one committee to another'::varchar AS contribution_type,
-        amendment_indicator,
-        report_type,
-        primary_general_indicator,
-        image_number,
-        entity_type,
-        name as contributor_lender_name,
-        city,
-        state,
-        zip_code,
-        employer,
-        occupation,
-        memo_cd as memo_code,
-        memo_text,
-        'NA' as candidate_id,
-        fec_record_number
-FROM
-        inter.one_commitee_to_another
-UNION ALL
 SELECT 
-        committee_identification,
-        'commitee to candidate'::varchar AS contribution_type,
-        amendment_indicator,
-        report_type,
-        primary_general_indicator,
-        image_number,
-        entity_type,
-        name as contributor_lender_name,
-        city,
-        state,
-        zip_code,
-        employer,
-        occupation,
-        memo_code,
-        memo_text,
-        candidate_id,
-        fec_record_number
-FROM inter.commitees_to_canidates_s1
+       committee_identification
+        , contribution_type
+        , amendment_indicator
+        , report_type
+        , primary_general_indicator
+        , image_number
+        , entity_type
+        , contributor_lender_name
+        , city
+        , state
+        , zip_code
+        , employer
+        , occupation
+        , memo_code
+        , memo_text
+        , candidate_id
+        , fec_record_number
+        , internal_id
+FROM inter.joiner_contributors_s2
 )
-   select *,
-        nextval('individual')::bigint as internal_id
+   select *
         from mega_contributors
 ;
 
-ALTER TABLE if EXISTS mart.individual ADD PRIMARY KEY(internal_id);
-CREATE UNIQUE INDEX individual_inx
+ALTER TABLE if EXISTS mart.contributors 
+ADD PRIMARY KEY(internal_id);
+
+CREATE UNIQUE INDEX indiv_inx
 ON mart.contributors(internal_id);
 /*
 removed these from , they are suppose to go into 
