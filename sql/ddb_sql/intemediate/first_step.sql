@@ -142,5 +142,12 @@ select
 FROM stg.committee_master;
 
 
-
-
+create or replace table inter.candidate_commitee_linkage as
+SELECT    column0 as candidate_id
+        , column1::int as candidate_election_year
+        , column2::int as fec_election_year
+        , column3 as committee_id
+        , column4 as committee_type
+        , column5 as committee_design
+        , column6::int as linkg_age
+FROM stg.candidate_commitee_linkage;

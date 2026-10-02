@@ -105,6 +105,8 @@
                 from read_csv('${indiv26}/itcont.txt',all_varchar=true,header=false);
                 create table stg.committees_to_canidates_independent_expenditures as select *
                 from read_csv('${self'.packages.pass226}/itpas2.txt',all_varchar=true,header=false);
+                create table stg.candidate_commitee_linkage as select *
+                from read_csv('${self'.packages.ccl26}/ccl.txt',all_varchar=true,header=false);
                 "
               '';
           };
@@ -191,7 +193,10 @@
                             cp result/database.db .
                             chmod u+w database.db
                         duckdb database.db < ./sql/ddb_sql/intemediate/first_step.sql
-                        #duckdb database.db < ./sql/ddb_sql/intemediate/dimensions.sql
+                        duckdb database.db < ./sql/ddb_sql/intemediate/second_step.sql
+                        duckdb database.db < ./sql/ddb_sql/mart/mart_s1.sql
+                        duckdb database.db < ./sql/ddb_sql/mart/mart_s2.sql
+                        duckdb database.db < ./sql/ddb_sql/mart/mart_s3.sql
                 fi
               '';
             nativeBuildInputs = [pkgs.just];
