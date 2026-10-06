@@ -50,25 +50,26 @@ tables
 --       ending_cash 
 --FROM inter.candidate_summary_s1
 SELECT
-        COUNT(*)
+        mcan.candidate_name,
+        mcom.committee_name
 FROM
-        inter.individual_contributions_s1
+        mart.donations AS mdon
+left join mart.committee AS mcom
+        ON mdon.committee_key = mcom.internal_id
+inner join mart.candidate_commitee_linkage as ccl
+        on  mcom.internal_id = ccl.committee_key
+inner join mart.candidate as mcan
+        on mcan.internal_id = ccl.committee_key
 WHERE
-        transaction_type IN('10',
-        '15',
-        '15c',
-        '15e',
-        '15i',
-        '15k',
-        '15t',
-        '15z',
-        '18g',
-        '18k',
-        '18u',
-        '22r',
-        '24g',
-        '24i',
-        '24k');
+        mdon.transaction_type IN(
+                '10',
+                '15',
+                '15c',
+                '24g',
+                '24u'
+        )
+AND 
+        mcan.candidate_name ilike '%aftyn%behn%'
 /*
 trying to do exploritory analysis on this dataset
 */SELECT
