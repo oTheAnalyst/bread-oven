@@ -1,0 +1,50 @@
+---
+title: Data Analysis
+---
+
+## time for research
+
+A quarto document with sql, R and python code.
+
+```{R}
+#| echo: false
+#| warning: false
+con_fec <- DBI::dbConnect(
+  drv = duckdb::duckdb(),
+  dbdir = "./database.db"
+)
+```
+
+```{sql temptable}
+--| label: get-carriers
+--| connection: con_fec
+--| echo: false
+--| warning: false
+create temp table candidate_committee_research as
+        SELECT *
+        FROM
+                mart.donations AS donations
+        INNER JOIN mart.committee AS committee
+                ON donations.committee_key = committee.internal_id
+        INNER JOIN mart.candidate_commitee_linkage AS cc_linkage
+                ON committee.committee_identification = cc_linkage.committee_id
+        INNER JOIN mart.candidate AS candidate
+                ON candidate.candidate_id = cc_linkage.candidate_id
+        GROUP BY
+                ALL;
+
+```
+
+
+```{sql init}
+--| label: init-analysis 
+--| connection: con_fec
+--| echo: false
+--| warning: false
+select 
+      candidate_name,
+      total_receipts 
+from candidate_committee_research
+group by all 
+order by total_receipts desc
+```

@@ -126,6 +126,7 @@
           myRPackages = with pkgs.rPackages; [
             reticulate
             DBI
+            duckdb
             RPostgreSQL
             dplyr
             treemap

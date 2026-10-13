@@ -18,34 +18,37 @@ ORDER BY
 SELECT
         candidate_name
 FROM
-        inter.candidate_summary_s1
+        mart.candidate
 WHERE
-        candidate_name ilike '%ep%'
+        candidate_name ilike '%behn%'
 GROUP BY
         ALL;
 /*
 114 rows returned
-*/   -- 
-SELECT
-        mcan.candidate_name,
-        mcom.committee_name
+*/-- 
+WITH test AS (
+        SELECT
+                mcan.candidate_name,
+                mcom.committee_name
+        FROM
+                mart.donations AS mdon
+        INNER JOIN mart.committee AS mcom
+                ON mdon.committee_key = mcom.internal_id
+        INNER JOIN mart.candidate_commitee_linkage AS ccl
+                ON mcom.committee_identification = ccl.committee_id
+        INNER JOIN mart.candidate AS mcan
+                ON mcan.candidate_id = ccl.candidate_id
+        GROUP BY
+                ALL
+) SELECT
+        candidate_name,
+        COUNT(*) AS c
 FROM
-        mart.donations AS mdon
-LEFT JOIN mart.committee AS mcom
-        ON mdon.committee_key = mcom.internal_id
-INNER JOIN mart.candidate_commitee_linkage AS ccl
-        ON mcom.internal_id = ccl.committee_key
-INNER JOIN mart.candidate AS mcan
-        ON mcan.internal_id = ccl.committee_key
-WHERE
-        mdon.transaction_typeIN('10',
-        '15',
-        '15c',
-        '24g',
-        '24u')
-        AND mcan.candidate_name ilike '%ep%'
+        test
 GROUP BY
-        ALL;
-/*
+        ALL
+ORDER BY
+        c DESC
+LIMIT 10/*
 1 row returned
 */

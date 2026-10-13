@@ -1,21 +1,209 @@
 ---
-title: Quarto Document
+title: "Referencing a SQL Listing with a ggplot"
+format: html
 ---
 
-## Section Title
+## Setup
 
-A quarto document with bash, R and python code.
+First, we load the required packages and prepare a small dataset in R.
 
-```{sh}
-which R
-which python
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+library(DBI)
+library(duckdb)
+library(ggplot2)
+
+# Create an in-memory DuckDB and register a data frame
+con <- dbConnect(duckdb::duckdb("./database.db"))
+```
+
+## The Analysis
+
+The following listing shows the SQL query and a plot of its results.
+See @lst-time-series-donations for the full details.
+
+
+
+#### time-series-donations
+::: {#lst-time-series-donations}
+
+
+```{sql}
+--| connection: con
+--| code-fold: true
+drop table mart.time_series_donations;
+
+create table mart.time_series_donations as
+SELECT
+  donations.transaction_date,
+  committee.committee_name,
+  sum(donations.transaction_amount) AS amount
+FROM
+  mart.donations AS donations
+  LEFT JOIN mart.committee AS committee
+    ON donations.committee_key = committee.internal_id
+  LEFT JOIN mart.candidate_commitee_linkage AS cc_linkage
+    ON committee.internal_id = cc_linkage.committee_key
+  LEFT JOIN mart.candidate AS candidate
+    ON cc_linkage.candidate_key = candidate.internal_id
+  LEFT JOIN mart.contributors AS contributors
+    ON donations.contributor_key = contributors.internal_id
+WHERE
+  (
+    candidate.candidate_name ILIKE '%behn%'
+    OR candidate.candidate_name ILIKE '%van%epps%'
+    OR committee.committee_name ILIKE '%unrigged%'
+    OR committee.committee_name ILIKE '%van%epps%'
+  )
+  AND (
+    donations.transaction_date BETWEEN (
+      '2025-12-02'::DATE - INTERVAL 7 DAY
+    ) AND '2025-12-02'::DATE
+  )
+GROUP BY
+  ALL
+ORDER BY
+  amount desc;
+
+
+```
+
+
+```{sql}
+--| connection: con
+--| echo: false
+
+select * from mart.time_series_donations;
+ 
 ```
 
 ```{r}
-plot(mpg ~ cyl, mtcars)
+#| echo: false
+#| fig-cap: "Aggregate USD amount by week"
+#| fig-alt: "Bar chart showing daily USD expenditures for Epps vs Behn "
+
+result <- dbGetQuery(con, "
+                pivot mart.time_series_donations
+                on committee_name
+                using first(amount)
+                order by transaction_date desc
+")
+
+# Most basic bubble plot
+p <- ggplot(
+  data = subset(result, !is.na(`MATT VAN EPPS FOR CONGRESS`)),
+  aes(x = transaction_date)
+) +
+  geom_line(aes(y = .data[['MATT VAN EPPS FOR CONGRESS']],
+                color = 'MATT VAN EPPS FOR CONGRESS')) +
+  geom_line(aes(y = .data[['UNRIGGED PAC']],
+                color = 'UNRIGGED PAC')) +
+  labs(y = "Amount (USD)")
+p
 ```
 
-```{python}
-import os
-os.listdir()
+**Listing:** A SQL query that aggregates the amount of USD spent in the Epps vs Behn race for the week of 2025-12-02 order by greatest to least transaction , along with its resulting time series chart.
+
+
+:::
+
+
+
+
+
+#### ranked state donations
+
+::: {#lst-ranked-state-donation}
+
+```{sql}
+--| connection: con
+--| code-fold: true
+DROP TABLE IF EXISTS mart.ranked_states;
+
+CREATE TABLE mart.ranked_states AS
+WITH ranking AS (
+  SELECT
+    contributors.state,
+    committee.committee_name,
+    sum(donations.transaction_amount) AS amountUSD,
+    count(*) AS donations_count
+  FROM
+    mart.donations AS donations
+    LEFT JOIN mart.committee AS committee
+      ON donations.committee_key = committee.internal_id
+    LEFT JOIN mart.candidate_commitee_linkage AS cc_linkage
+      ON committee.internal_id = cc_linkage.committee_key
+    LEFT JOIN mart.candidate AS candidate
+      ON cc_linkage.candidate_key = candidate.internal_id
+    LEFT JOIN mart.contributors AS contributors
+      ON donations.contributor_key = contributors.internal_id
+  WHERE
+    (
+      candidate.candidate_name ILIKE '%behn%'
+      OR candidate.candidate_name ILIKE '%van%epps%'
+      OR committee.committee_name ILIKE '%unrigged%'
+    )
+    AND (
+      donations.transaction_date
+      BETWEEN ('2025-12-02'::DATE - INTERVAL 7 DAY) AND '2025-12-02'::DATE
+    )
+  GROUP BY
+    ALL
+)
+
+SELECT
+  *,
+  dense_rank()
+    OVER (PARTITION BY committee_name ORDER BY amountUSD DESC)
+    AS amountUSD_rank,
+  dense_rank()
+    OVER (PARTITION BY committee_name ORDER BY donations_count DESC)
+    AS donations_count_rank
+FROM
+  ranking
+ORDER BY
+  amountUSD_rank;
+
+```
+
+```{sql}
+--| connection: con
+--| echo: false
+select * from mart.ranked_states
+order by amountUSD desc;
+
+```
+
+
+```{r}
+#| echo: false
+#| fig-cap: "Aggregate USD amount by week"
+#| fig-alt: "Bar chart showing daily USD expenditures for Epps vs Behn "
+
+result <- dbGetQuery(con, "
+           from mart.ranked_states
+           where 
+           amountUSD_rank <= 15
+           order by state;
+        ")
+
+# Most basic bubble plot
+ggplot(result, aes(fill=.data[['committee_name']],x=reorder(.data[['state']], -.data[['amountUSD']]), y=.data[['amountUSD']])) + 
+  geom_bar(stat = "identity") +
+  coord_flip()
+```
+
+
+
+A SQL query that aggregates the amount of USD spent in the Epps vs Behn race by state ranked donations , along with its resulting bar chart.
+
+::: 
+
+## Cleanup
+
+```{r}
+#| echo: false
+dbDisconnect(con, shutdown = TRUE)
 ```
