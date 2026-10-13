@@ -34,12 +34,12 @@
 
           services.postgres."pg1" = {
             enable = true;
-            initialDatabases = [
-              {
-                name = dbName;
-                schemas = [./fec_schema.sql];
-              }
-            ];
+            #initialDatabases = [
+            #  {
+            #    name = dbName;
+            #    schemas = [./fec_schema.sql];
+            #  }
+            #];
           };
 
           settings.processes.pgweb = let
@@ -126,6 +126,7 @@
           myRPackages = with pkgs.rPackages; [
             reticulate
             DBI
+            duckdb
             RPostgreSQL
             dplyr
             treemap
