@@ -1,13 +1,13 @@
 {
   "cm26": {
     "url": "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/2026/cm26.zip",
-    "etag": "cd316a300df81f2f23f9f35965549353",
-    "hash": "sha256-OSxefmxxXTGwoTaLk+MS6JACP6mNH+YRdyNwed3364E="
+    "etag": "242a7ecf6c441167dd819a1d8c3685ef",
+    "hash": "sha256-NhBBzsI22+jZCFY+6LJYDin+RkK/9X4/oPn1EFkVI+E="
   },
   "weball26": {
     "url": "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/2026/weball26.zip",
-    "etag": "bd57d7773fac1b29c1e52ba5e4b6030b",
-    "hash": "sha256-rj+lxmolLr+4nWBkDWKqahh06MK1qoRbLDAYzsAnGfo="
+    "etag": "c9f380a2f745b882939a3c5cdf9ec1d5",
+    "hash": "sha256-iqriKPE2zmX+tNRJUzjWIBZATEP8y0rBAGsXZjOBq/U="
   },
   "oth26": {
     "url": "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/2026/oth26.zip",
@@ -26,7 +26,7 @@
   },
   "ccl26": {
     "url": "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/2026/ccl26.zip",
-    "etag": "02988f38f1515db657e5b61aa902a73a",
-    "hash": "sha256-+RRp+gltf6IWx/Px+DjQO8xJ/rTG44a0BLTGsf3PiH4="
+    "etag": "bc087cc8875f75dee32f1bd3c30bb7c6",
+    "hash": "sha256-sQ/K/eR9JboKvPCzTRXeHTbeRlQnVHUX4q28bHXFJmA="
   }
 }
