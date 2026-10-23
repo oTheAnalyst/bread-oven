@@ -1,23 +1,5 @@
 {
   "nodes": {
-    "flake-parts": {
-      "inputs": {
-        "nixpkgs-lib": "nixpkgs-lib"
-      },
-      "locked": {
-        "lastModified": 1787559586,
-        "narHash": "sha256-onL0VLf9vPllmT0H/OlURIU5r5t5WIEl7t4tVNKT0Nw=",
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "rev": "9d0d87172c374f89da73c1cfe6d81ae62feac1f1",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1787874478,
@@ -34,90 +16,9 @@
         "type": "github"
       }
     },
-    "nixpkgs-lib": {
-      "locked": {
-        "lastModified": 1785031560,
-        "narHash": "sha256-OmshNvn2vupOFpYinLUu+1Dnpu4n7Q5N3ggGVNHpkUI=",
-        "owner": "nix-community",
-        "repo": "nixpkgs.lib",
-        "rev": "0e79af5e3d4dcfcd676ab5ba3f95d2e3352e078c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "nixpkgs.lib",
-        "type": "github"
-      }
-    },
-    "postgres_devenv": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1788025780,
-        "narHash": "sha256-amHgpOrYCIyeMPpFji34Hy8k4djfoAtG/mu65vfzMdc=",
-        "owner": "oTheAnalyst",
-        "repo": "postgres_devenv",
-        "rev": "27320641690f7e884cf4f9100e7fec53f913b237",
-        "type": "github"
-      },
-      "original": {
-        "owner": "oTheAnalyst",
-        "repo": "postgres_devenv",
-        "type": "github"
-      }
-    },
-    "process-compose-flake": {
-      "locked": {
-        "lastModified": 1782060835,
-        "narHash": "sha256-Q8HH2t1l3MITtWCWY4ytcH5F/Q7aAHo3Iq/QTMAKTe0=",
-        "owner": "Platonic-Systems",
-        "repo": "process-compose-flake",
-        "rev": "464ff6880737f063c3f0d3d2c7781fda9190868f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Platonic-Systems",
-        "repo": "process-compose-flake",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
-        "flake-parts": "flake-parts",
-        "nixpkgs": "nixpkgs",
-        "postgres_devenv": "postgres_devenv",
-        "process-compose-flake": "process-compose-flake",
-        "services-flake": "services-flake",
-        "systems": "systems"
-      }
-    },
-    "services-flake": {
-      "locked": {
-        "lastModified": 1787074068,
-        "narHash": "sha256-z0CqDCjs+xU/Yw2/VkS8Mz7qzw4AsZ+AMwEMmqSSKh0=",
-        "owner": "juspay",
-        "repo": "services-flake",
-        "rev": "4f56c8f1cbd09c774a491a47acd3605a6eb7adfa",
-        "type": "github"
-      },
-      "original": {
-        "owner": "juspay",
-        "repo": "services-flake",
-        "type": "github"
-      }
-    },
-    "systems": {
-      "locked": {
-        "lastModified": 1680978846,
-        "narHash": "sha256-Gtqg8b/v49BFDpDetjclCYXm8mAnTrUzR0JnE2nv5aw=",
-        "owner": "nix-systems",
-        "repo": "x86_64-linux",
-        "rev": "2ecfcac5e15790ba6ce360ceccddb15ad16d08a8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-systems",
-        "repo": "x86_64-linux",
-        "type": "github"
+        "nixpkgs": "nixpkgs"
       }
     }
   },
