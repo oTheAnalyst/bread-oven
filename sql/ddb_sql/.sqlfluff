@@ -1,0 +1,23 @@
+[sqlfluff]
+dialect = duckdb
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper
+
+allow_scalar = True
+unquoted_identifiers_policy = all
+
+[sqlfluff:layout:type:alias_expression]
+align_within = select_clause
+
+
+[sqlfluff:indentation]
+indented_joins = TRUE
+indented_using_on = True
+tab_space_size = 2
+
+[sqlfluff:layout:type:comma]
+line_position = trailing
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = lower
