@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    systems.url = "github:nix-systems/x86_64-linux";
+    systems.url = "github:nix-systems/default";
     process-compose-flake.url = "github:Platonic-Systems/process-compose-flake";
     services-flake.url = "github:juspay/services-flake";
     postgres_devenv.url = "github:oTheAnalyst/postgres_devenv";
@@ -11,7 +11,12 @@
   };
   outputs = inputs:
     inputs.flake-parts.lib.mkFlake {inherit inputs;} {
-      systems = import inputs.systems;
+      systems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-linux"
+        "x86_64-darwin"
+      ];
       imports = [
         inputs.process-compose-flake.flakeModule
       ];
@@ -34,12 +39,12 @@
 
           services.postgres."pg1" = {
             enable = true;
-            initialDatabases = [
-              {
-                name = dbName;
-                schemas = [./fec_schema.sql];
-              }
-            ];
+            #initialDatabases = [
+            #  {
+            #    name = dbName;
+            #    schemas = [./fec_schema.sql];
+            #  }
+            #];
           };
 
           settings.processes.pgweb = let
@@ -126,6 +131,7 @@
           myRPackages = with pkgs.rPackages; [
             reticulate
             DBI
+            duckdb
             RPostgreSQL
             dplyr
             treemap
@@ -152,6 +158,7 @@
               sendb
               nix-output-monitor
               cowsay
+              positron-bin
               postgresql
               pgcli
               sqlfluff

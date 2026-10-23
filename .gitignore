@@ -1,3 +1,7 @@
+snowflake.log
+test_files/*
+election_analyst_files/*
+elect_analysis_files/*
 result/
 database.db
 *_cache/

@@ -1,0 +1,404 @@
+---
+title: "Referencing a SQL Listing with a ggplot"
+format: html
+---
+
+## Setup
+
+First, we load the required packages and prepare a small dataset in R.
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+library(DBI)
+library(duckdb)
+library(ggplot2)
+
+# Create an in-memory DuckDB and register a data frame
+con <- dbConnect(duckdb::duckdb("./database.db"))
+```
+
+## The Analysis
+
+The listing answer the following questions:
+
+Of donations made, how many were made each day, and how much was donated each day?
+
+@lst-time-series-donations
+
+
+Which candidate has recieved the most donations from each state?
+
+@lst-ranked-state-donation
+
+
+Of donations made by committeees to candidates, for each interest group type, for those applicable, what percentage of money went to democrats?
+
+@lst-committee-to-candidate-committee
+
+What committee donated the most to afton byne, (do the same for specifically leadership pacs)
+
+@lst-highest-rank-pac-for-bahn
+
+What is the mean, median, mode, and varience of contributions from individuals?
+
+@lst-mean-median-mode-individual
+
+
+#### Time Series Donations
+::: {#lst-time-series-donations}
+
+
+```{sql}
+--| connection: con
+--| code-fold: true
+
+DROP TABLE IF EXISTS mart.time_series_donations;
+
+CREATE TABLE mart.time_series_donations AS
+SELECT
+  donations.transaction_date,
+  committee.committee_name,
+  sum(donations.transaction_amount) AS amount
+FROM
+  mart.donations AS donations
+  LEFT JOIN mart.committee AS committee
+    ON donations.committee_key = committee.internal_id
+  LEFT JOIN mart.candidate_commitee_linkage AS cc_linkage
+    ON committee.internal_id = cc_linkage.committee_key
+  LEFT JOIN mart.candidate AS candidate
+    ON cc_linkage.candidate_key = candidate.internal_id
+  LEFT JOIN mart.contributors AS contributors
+    ON donations.contributor_key = contributors.internal_id
+WHERE
+  (
+    candidate.candidate_name ILIKE '%behn%'
+    OR candidate.candidate_name ILIKE '%van%epps%'
+    OR committee.committee_name ILIKE '%unrigged%'
+    OR committee.committee_name ILIKE '%van%epps%'
+  )
+  AND (
+    donations.transaction_date BETWEEN (
+      '2025-12-02'::DATE - INTERVAL 7 DAY
+    ) AND '2025-12-02'::DATE
+  )
+GROUP BY
+  ALL
+ORDER BY
+  amount desc;
+
+
+```
+
+
+```{sql}
+--| connection: con
+--| echo: false
+--| max.print: -1
+
+select * from mart.time_series_donations;
+ 
+```
+
+```{r}
+#| echo: false
+#| fig-cap: "Aggregate USD amount by week"
+#| fig-alt: "Bar chart showing daily USD expenditures for Epps vs Behn "
+
+result <- dbGetQuery(con, "
+                PIVOT mart.time_series_donations
+                ON committee_name
+                USING first(amount)
+                ORDER by transaction_date desc
+")
+
+# Most basic bubble plot
+p <- ggplot(
+  data = subset(result, !is.na(`MATT VAN EPPS FOR CONGRESS`)),
+  aes(x = transaction_date)
+) +
+  geom_line(aes(y = .data[['MATT VAN EPPS FOR CONGRESS']],
+                color = 'MATT VAN EPPS FOR CONGRESS')) +
+  geom_line(aes(y = .data[['UNRIGGED PAC']],
+                color = 'UNRIGGED PAC')) +
+  labs(y = "Amount (USD)")
+p
+```
+
+**Listing:** A SQL query that aggregates the amount of USD spent in the Epps vs Behn race for the week of 2025-12-02 order by greatest to least transaction , along with its resulting time series chart.
+
+
+:::
+
+
+
+
+
+
+#### State Donations
+::: {#lst-ranked-state-donation}
+
+
+```{sql}
+--| connection: con
+--| code-fold: true
+
+DROP TABLE IF EXISTS mart.ranked_states;
+
+CREATE TABLE mart.ranked_states AS
+WITH ranking AS (
+  SELECT
+    contributors.state,
+    committee.committee_name,
+    sum(donations.transaction_amount) AS amountUSD,
+    count(*) AS donations_count
+  FROM
+    mart.donations AS donations
+    LEFT JOIN mart.committee AS committee
+      ON donations.committee_key = committee.internal_id
+    LEFT JOIN mart.candidate_commitee_linkage AS cc_linkage
+      ON committee.internal_id = cc_linkage.committee_key
+    LEFT JOIN mart.candidate AS candidate
+      ON cc_linkage.candidate_key = candidate.internal_id
+    LEFT JOIN mart.contributors AS contributors
+      ON donations.contributor_key = contributors.internal_id
+  WHERE
+    (
+      candidate.candidate_name ILIKE '%behn%'
+      OR candidate.candidate_name ILIKE '%van%epps%'
+      OR committee.committee_name ILIKE '%unrigged%'
+    )
+    AND (
+      donations.transaction_date
+      BETWEEN ('2025-12-02'::DATE - INTERVAL 7 DAY) AND '2025-12-02'::DATE
+    )
+  GROUP BY
+    ALL
+)
+
+SELECT
+  *,
+  dense_rank()
+    OVER (PARTITION BY committee_name ORDER BY amountUSD DESC)
+    AS amountUSD_rank,
+  dense_rank()
+    OVER (PARTITION BY committee_name ORDER BY donations_count DESC)
+    AS donations_count_rank
+FROM
+  ranking
+ORDER BY
+  amountUSD_rank;
+
+```
+
+```{sql}
+--| connection: con
+--| echo: false
+--| max.print: -1
+--| fig-cap: "percentages of USD going to parties"
+select * from mart.ranked_states
+order by amountUSD desc
+limit 15;
+
+```
+
+
+```{r}
+#| echo: false
+#| fig-cap: "Aggregate USD amount by State"
+#| fig-alt: "Bar chart showing daily USD expenditures for Epps vs Behn "
+
+result <- dbGetQuery(con, "
+           from mart.ranked_states
+           where 
+           amountUSD_rank <= 15
+           order by state;
+        ")
+
+# Most basic bubble plot
+ggplot(result, aes(fill=.data[['committee_name']],x=reorder(.data[['state']], -.data[['amountUSD']]), y=.data[['amountUSD']])) + 
+  geom_bar(stat = "identity") +
+  coord_flip()
+
+```
+
+```{r}
+#| echo: false
+#| fig-cap: "Aggregate donation count by State"
+#| fig-alt: "Bar chart showing daily USD donation count for Epps vs Behn "
+
+
+ggplot(result, aes(fill=.data[['committee_name']],x=reorder(.data[['state']], -.data[['donations_count']]), y=.data[['donations_count']])) + 
+  geom_bar(stat = "identity") +
+  coord_flip()
+
+```
+
+
+A SQL query that aggregates the amount of USD spent in the Epps vs Behn race by state ranked donations , along with its resulting bar chart.
+
+::: 
+
+#### Pacs for aften Bahn
+::: {#lst-highest-rank-pac-for-bahn}
+
+
+```{sql}
+--| connection: con
+--| code-fold: true
+
+SELECT
+  donations.transaction_type,
+  contributors.contributor_lender_name,
+  sum(donations.transaction_amount) AS amount
+-- candidate.candidate_name,
+-- contributors.contribution_type,
+-- committee.committee_name
+FROM
+  mart.donations AS donations
+  LEFT JOIN mart.committee AS committee
+    ON donations.committee_key = committee.internal_id
+  LEFT JOIN mart.candidate_commitee_linkage AS cc_linkage
+    ON committee.internal_id = cc_linkage.committee_key
+  LEFT JOIN mart.candidate AS candidate
+    ON cc_linkage.candidate_key = candidate.internal_id
+  LEFT JOIN mart.contributors AS contributors
+    ON donations.contributor_key = contributors.internal_id
+WHERE
+  (
+    candidate.candidate_name ILIKE '%aft%behn%'
+    OR committee.committee_name ILIKE '%unrigged%'
+  )
+  AND (
+    donations.transaction_date BETWEEN (
+      '2025-12-02'::DATE - INTERVAL 7 DAY
+    ) AND '2025-12-02'::DATE
+  )
+  AND contributors.contribution_type ILIKE 'one committee to another'
+--      AND contributors.contributor_lender_name
+GROUP BY
+  ALL
+ORDER BY
+  amount DESC;
+
+```
+
+
+a simple table that looks at the most enthusiastic committee for bahn
+:::
+
+
+#### Committee to Candidate Committee
+::: {#lst-committee-to-candidate-committee}
+
+
+```{sql}
+--| connection: con
+--| code-fold: true
+--| max.print: -1
+
+WITH committee_dollars AS (
+  SELECT
+    committee.committee_party,
+    sum(donations.transaction_amount) AS dollars_sum,
+    count(donations.transaction_amount) AS count
+  FROM
+    mart.donations AS donations
+    LEFT JOIN mart.committee AS committee
+      ON donations.committee_key = committee.internal_id
+    LEFT JOIN mart.candidate_commitee_linkage AS cc_linkage
+      ON committee.internal_id = cc_linkage.committee_key
+    LEFT JOIN mart.candidate AS candidate
+      ON cc_linkage.candidate_key = candidate.internal_id
+    LEFT JOIN mart.contributors AS contributors
+      ON donations.contributor_key = contributors.internal_id
+  WHERE
+    (
+      candidate.candidate_name ILIKE '%behn%'
+      OR candidate.candidate_name ILIKE '%van%epps%'
+      OR committee.committee_name ILIKE '%unrigged%'
+    )
+    -- AND (donations.transaction_date BETWEEN ('2025-12-02'::DATE - INTERVAL 7 DAY)
+    -- AND '2025-12-02'::DATE)
+    AND (
+      contributors.contribution_type = 'commitee to candidate'
+      OR contributors.contribution_type = 'one committee to another'
+    )
+  GROUP BY ALL
+  ORDER BY dollars_sum DESC
+),
+
+running_total AS (
+  SELECT
+    dollars_sum,
+    committee_party,
+    sum(dollars_sum) OVER (
+      ORDER BY committee_party RANGE BETWEEN UNBOUNDED PRECEDING
+      AND CURRENT ROW
+    ) AS t2
+  FROM committee_dollars
+)
+
+SELECT
+  (round(dollars_sum / t2, 2) * 100)::varchar || '%' AS Republican,
+  (round(1 - dollars_sum / t2, 2) *100)::varchar || '%' AS Democrat
+FROM running_total
+GROUP BY ALL
+ORDER BY Democrat desc
+LIMIT 1
+;
+
+
+
+```
+
+Show the percentage of the total amount of usd sent from committee to candidate committee
+:::
+
+#### mean median and mode of individuals
+::: {#lst-mean-median-mode-individual}
+```{sql}
+--| connection: con
+--| code-fold: true
+--| max.print: -1
+
+SELECT
+  sum(donations.transaction_amount) AS dollars_sum,
+  count(donations.transaction_amount) AS count,
+  round(mean(donations.transaction_amount), 2) AS dollars_mean,
+  median(donations.transaction_amount) AS dollars_median,
+  mode(donations.transaction_amount) AS dollars_mode
+FROM
+  mart.donations AS donations
+  LEFT JOIN mart.committee AS committee
+    ON donations.committee_key = committee.internal_id
+  LEFT JOIN mart.candidate_commitee_linkage AS cc_linkage
+    ON committee.internal_id = cc_linkage.committee_key
+  LEFT JOIN mart.candidate AS candidate
+    ON cc_linkage.candidate_key = candidate.internal_id
+  LEFT JOIN mart.contributors AS contributors
+    ON donations.contributor_key = contributors.internal_id
+WHERE
+  (
+    candidate.candidate_name ILIKE '%behn%'
+    OR candidate.candidate_name ILIKE '%van%epps%'
+    OR committee.committee_name ILIKE '%unrigged%'
+  )
+  AND (
+    donations.transaction_date BETWEEN ('2025-12-02'::DATE - INTERVAL 7 DAY)
+    AND '2025-12-02'::DATE
+  )
+ORDER BY dollars_sum DESC;
+
+```
+
+This talbe shows the  mean median and mode for individual donors to candidates committee, only shows individuals who have donated more than once.
+:::
+
+## Cleanup
+
+```{r}
+#| echo: false
+dbDisconnect(con, shutdown = TRUE)
+```
