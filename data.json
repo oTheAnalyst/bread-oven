@@ -1,32 +1,32 @@
 {
   "cm26": {
     "url": "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/2026/cm26.zip",
-    "etag": "e54eea5918503432e6a45b043e0e18ba",
-    "hash": "sha256-qp+Z6OQCLu4wIX2zrUBnxA+UL8OCwAgwybxT6L7GwXQ="
+    "etag": "c23640f16dd9781cb561ab136902259a",
+    "hash": "sha256-h5HUfE3hJ80QV5d+tuT0YXN64Ny/doU6Abvtp6f2fws="
   },
   "weball26": {
     "url": "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/2026/weball26.zip",
-    "etag": "1ba95bba2c96bdfa287791490a5aca55",
-    "hash": "sha256-TrcnNVeCl6dKeV2Yd+Gpm1dpnLXqNM1GmtCz5A2m6Mg="
+    "etag": "d9ef05010d45d90df103c67f3446abcf",
+    "hash": "sha256-OkuLhJRFuT8dFIg+KqQ/mZiwRiZUPn1JIxpw6mZ3SnE="
   },
   "oth26": {
     "url": "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/2026/oth26.zip",
-    "etag": "fbf685be0259c3ddf91f440f811756a8-26",
-    "hash": "sha256-AixBDmUTzqKa0Qr9lReh7fGJHoSdxQsWNu80j1kOjiE="
+    "etag": "e9c41ce445a4c14a0d68e25858398254-26",
+    "hash": "sha256-jbvcQ2M3UFlvBJSuIlrVX0sp4pwABPgbJY0OIUHc390="
   },
   "indiv26": {
     "url": "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/2026/indiv26.zip",
-    "etag": "444c726150d52627ea5083ea5596ac07-278",
-    "hash": "sha256-RIzwaKvy2w1Cx13cJKQZtYoEDL1KcA5hV2Apc7cXYk4="
+    "etag": "471b8d07fd61f510c645c2f881ec568c-284",
+    "hash": "sha256-JpVa+/j4gqxVX1f8h2M21wxUN9nERtbEWyfRD+r0Aow="
   },
   "pass226": {
     "url": "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/2026/pas226.zip",
-    "etag": "33ae3cde6a01ec1be48e1116c6b80bf1-2",
-    "hash": "sha256-RWDNmVmFw3H2zM89bB/kTW/Bs8xK4sw3SjFZfNE5eB4="
+    "etag": "0c9841a6edd77a84f1696347614542f5-2",
+    "hash": "sha256-1zEw1jg/Bhzdjd0yXqJhPjo5nhiw/eQD3hOzrp0KbNs="
   },
   "ccl26": {
     "url": "https://cg-519a459a-0ea3-42c2-b7bc-fa1143481f74.s3-us-gov-west-1.amazonaws.com/bulk-downloads/2026/ccl26.zip",
-    "etag": "2e1774797205b58e5a0a02dc29d740c6",
-    "hash": "sha256-gv5sJX75l4qZUZolKySmgVN1DinXudlSrPeauOjkdvo="
+    "etag": "4fd11c74be24154a02b04a6428f058ae",
+    "hash": "sha256-zHuCHr3jr4OV1HDtYvJTgMpf/f90+hrm3cK3vuYEoJc="
   }
 }
