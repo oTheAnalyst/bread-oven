@@ -75,17 +75,26 @@
                 duckdb $out/database.db -c "
                 create schema stg;
                 create table stg.committee_master as select *
-                from read_csv('${self.packages.${system}.cm26}/cm.txt',all_varchar=true,header=false);
+                from read_csv('${self.packages.${system}.cm26}/cm.txt',all_varchar=true,header=false,ignore_errors=true);
+
                 create table stg.candidate_summary as select *
-                from read_csv('${self.packages.${system}.weball26}/weball26.txt',all_varchar=true,header=false);
+                from read_csv('${
+                  self.packages.${system}.weball26
+                }/weball26.txt',all_varchar=true,header=false,ignore_errors=true);
+
                 create table stg.one_commitee_to_another as select *
-                from read_csv('${self.packages.${system}.oth26}/itoth.txt',all_varchar=true,header=false);
+                from read_csv('${self.packages.${system}.oth26}/itoth.txt',all_varchar=true,header=false,ignore_errors=true);
+
                 create table stg.individual_contributions as select *
-                from read_csv('${indiv26}/itcont.txt',all_varchar=true,header=false);
+                from read_csv('${indiv26}/itcont.txt',all_varchar=true,header=false,ignore_errors=true);
+
                 create table stg.committees_to_canidates_independent_expenditures as select *
-                from read_csv('${self.packages.${system}.pass226}/itpas2.txt',all_varchar=true,header=false);
+                from read_csv('${
+                  self.packages.${system}.pass226
+                }/itpas2.txt',all_varchar=true,header=false,ignore_errors=true);
+
                 create table stg.candidate_commitee_linkage as select *
-                from read_csv('${self.packages.${system}.ccl26}/ccl.txt',all_varchar=true,header=false);
+                from read_csv('${self.packages.${system}.ccl26}/ccl.txt',all_varchar=true,header=false,ignore_errors=true);
                 "
               '';
         }
