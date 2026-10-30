@@ -1,5 +1,5 @@
 {
-  description = "A demo of sqlite-web and multiple postgres services";
+  description = "A reproducable database/datapipeline using duckdb";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -102,88 +102,90 @@
 
       #packages.default = self'.packages.bread-oven;
       devShells = forEachPkgs (
-        pkgs: system: {
-          default =
-            let
-              myPythonPackages =
-                ps: with ps; [
-                  numpy
-                  pandas
-                  keyring
-                ];
-              pythonEnv = pkgs.python3.withPackages myPythonPackages;
-              myRPackages = with pkgs.rPackages; [
-                reticulate
-                DBI
-                duckdb
-                ggplot2
-              ];
-              #  load =
-              #    pkgs.writeShellScriptBin "load"
-              #    ''pg_restore -h localhost -d bread -v --no-acl --no-owner ${self'.packages.sched_a}'';
-              sendb = pkgs.writeShellScriptBin "sendb" "psql -h localhost -d bread";
-            in
-            pkgs.mkShell {
-              inputsFrom = [
-                # Add the packages of the enabled services in the devShell
-                #
-                # For example: `psql` to interact with `postgres` server or `redis-cli` with `redis-server`
-                #  config.process-compose."bread-oven".services.outputs.devShell
-              ];
-              packages = with pkgs; [
-                # Add the process-compose app in the devShell
-                jq
-                sendb
-                nix-output-monitor
+        pkgs: system:
+        let
+          myPythonPackages =
+            ps: with ps; [
+              numpy
+              pandas
+              keyring
+            ];
+
+          pythonEnv = pkgs.python3.withPackages myPythonPackages;
+
+          myRPackages = with pkgs.rPackages; [
+            reticulate
+            DBI
+            ggplot2
+          ];
+
+          #  load =
+          #    pkgs.writeShellScriptBin "load"
+          #    ''pg_restore -h localhost -d bread -v --no-acl --no-owner ${self'.packages.sched_a}'';
+          sendb = pkgs.writeShellScriptBin "sendb" "psql -h localhost -d bread";
+        in
+        {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              # Add the process-compose app in the devShell
+              jq
+              sendb
+              nix-output-monitor
+              cowsay
+              pgcli
+              sqlfluff
+              duckdb
+              pkgs.texliveSmall
+              (
+                (quarto.override {
+                  extraPythonPackages = myPythonPackages;
+                  extraRPackages = myRPackages;
+                }).overrideAttrs
+                (oldAttrs: {
+                  # Remove this overrideAttrs patch when fixed.
+                  # See https://github.com/NixOS/nixpkgs/issues/519484#issuecomment-4667477454
+                  postPatch = (oldAttrs.postPatch or "") + ''
+                    substituteInPlace bin/quarto.js \
+                      --replace-fail "syntax-highlighting" "highlight-style"
+                  '';
+                })
+              )
+              (rWrapper.override { packages = myRPackages; })
+              pythonEnv
+            ];
+            shellHook =
+              #bash
+              ''
+                FILE=./database.db
+                ls -l $FILE
+                echo $(pwd)
+                if [ -f "$FILE" ]; then
+                        echo "your database exists" |
+                                cowsay
+                else
+                echo "database building ... please wait 5 minutes" |
                 cowsay
-                positron-bin
-                pgcli
-                sqlfluff
-                duckdb
-                pkgs.texliveSmall
-                (
-                  (quarto.override {
-                    extraPythonPackages = myPythonPackages;
-                    extraRPackages = myRPackages;
-                  }).overrideAttrs
-                  (oldAttrs: {
-                    # Remove this overrideAttrs patch when fixed.
-                    # See https://github.com/NixOS/nixpkgs/issues/519484#issuecomment-4667477454
-                    postPatch = (oldAttrs.postPatch or "") + ''
-                      substituteInPlace bin/quarto.js \
-                        --replace-fail "syntax-highlighting" "highlight-style"
-                    '';
-                  })
-                )
-                (rWrapper.override { packages = myRPackages; })
-                pythonEnv
-                #
-                # In the devShell, run `bread-oven` to run the app
-              ];
-              shellHook =
-                #bash
-                ''
-                  FILE=./database.db
-                  ls -l $FILE
-                  echo $(pwd)
-                  if [ -f "$FILE" ]; then
-                          echo "your database exists" |
-                                  cowsay
-                  else
-                  echo "database building ... please wait 5 minutes" |
-                  cowsay
-                  nom build .#ingestme
-                  cp result/database.db .
-                  chmod u+w database.db
-                  duckdb database.db < ./sql/ddb_sql/intemediate/first_step.sql
-                  duckdb database.db < ./sql/ddb_sql/intemediate/second_step.sql
-                  duckdb database.db < ./sql/ddb_sql/mart/mart_s1.sql
-                  duckdb database.db < ./sql/ddb_sql/mart/mart_s2.sql
-                  duckdb database.db < ./sql/ddb_sql/mart/mart_s3.sql
-                  fi
-                '';
-              nativeBuildInputs = [ pkgs.just ];
-            };
+                nom build .#ingestme
+                cp result/database.db .
+                chmod u+w database.db
+                duckdb database.db < ./sql/ddb_sql/intemediate/first_step.sql
+                duckdb database.db < ./sql/ddb_sql/intemediate/second_step.sql
+                duckdb database.db < ./sql/ddb_sql/mart/mart_s1.sql
+                duckdb database.db < ./sql/ddb_sql/mart/mart_s2.sql
+                duckdb database.db < ./sql/ddb_sql/mart/mart_s3.sql
+                fi
+              '';
+          };
+
+          full-shell = pkgs.mkShell {
+            packages = with pkgs; [
+              positron-bin
+              rPackages.duckdb
+            ];
+            inputsFrom = with self.devShells.${system}; [
+              default
+            ];
+          };
         }
       );
     };
